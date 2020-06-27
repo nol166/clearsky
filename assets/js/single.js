@@ -1,15 +1,19 @@
-// container for all issues
 const issueContainer = document.querySelector('#issue-container')
 const limitWarning = document.querySelector('#limit-warning')
-const nextBtn = document.querySelector('#next')
-const prevBtn = document.querySelector('#prev')
 let repoName = document.querySelector('#repo-name')
-let page = 1
+
+const getRepoName = () => {
+    let queryString = document.location.search
+    let repoName = queryString.split('=')[1]
+    repoName
+        ? getRepoIssues(repoName)
+        : document.location.replace('./index.html')
+}
 
 // get repo issues
 const getRepoIssues = repo => {
     repoName.innerText = repo
-    let issuesURL = `https://api.github.com/repos/${repo}/issues?direction=asc&page=${page}`
+    let issuesURL = `https://api.github.com/repos/${repo}/issues?direction=asc`
     console.log('issuesURL', issuesURL)
     fetch(issuesURL).then(res => {
         res.ok
@@ -17,18 +21,17 @@ const getRepoIssues = repo => {
                   .json()
                   .then(json => {
                       displayIssues(json)
-
                       if (res.headers.get('Link')) {
-                          console.log('more than 30 issues')
+                          displayWarning(repo)
                       }
                   })
                   .catch(err => alert(err))
-            : alert(`Error ${res.statusText}`)
+            : document.location.replace('./index.html')
     })
 }
 
 // TODO: get rid of this
-getRepoIssues('microsoft/vscode')
+// getRepoIssues('facebook/react')
 
 const displayIssues = issues => {
     if (issues.length <= 0) {
@@ -59,24 +62,11 @@ const displayIssues = issues => {
     })
 }
 
-const nextPage = () => {
-    issueContainer.innerHTML = ''
-    page++
-    getRepoIssues(repoName.innerText)
-    console.log('nextPage -> repoName', repoName)
+const displayWarning = repo => {
+    let linkEl = document.createElement('a')
+    linkEl.textContent = 'See More Issues on GitHub.com'
+    linkEl.setAttribute('href', `https://github.com/${repo}`)
+    limitWarning.appendChild(linkEl)
 }
 
-nextBtn.addEventListener('click', nextPage)
-
-const prevPage = () => {
-    if (page <= 1) {
-        return
-    } else {
-        issueContainer.innerHTML = ''
-        page--
-        getRepoIssues(repoName.innerText)
-        console.log('prevPage -> repoName', repoName)
-    }
-}
-
-prevBtn.addEventListener('click', prevPage)
+getRepoName()
