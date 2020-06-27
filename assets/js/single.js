@@ -1,16 +1,27 @@
 // container for all issues
 const issueContainer = document.querySelector('#issue-container')
+const limitWarning = document.querySelector('#limit-warning')
+const nextBtn = document.querySelector('#next')
+const prevBtn = document.querySelector('#prev')
 let repoName = document.querySelector('#repo-name')
+let page = 1
 
 // get repo issues
 const getRepoIssues = repo => {
     repoName.innerText = repo
-    let issuesURL = `https://api.github.com/repos/${repo}/issues?direction=asc`
+    let issuesURL = `https://api.github.com/repos/${repo}/issues?direction=asc&page=${page}`
+    console.log('issuesURL', issuesURL)
     fetch(issuesURL).then(res => {
         res.ok
             ? res
                   .json()
-                  .then(json => displayIssues(json))
+                  .then(json => {
+                      displayIssues(json)
+
+                      if (res.headers.get('Link')) {
+                          console.log('more than 30 issues')
+                      }
+                  })
                   .catch(err => alert(err))
             : alert(`Error ${res.statusText}`)
     })
@@ -47,3 +58,25 @@ const displayIssues = issues => {
         issueContainer.appendChild(issueEl)
     })
 }
+
+const nextPage = () => {
+    issueContainer.innerHTML = ''
+    page++
+    getRepoIssues(repoName.innerText)
+    console.log('nextPage -> repoName', repoName)
+}
+
+nextBtn.addEventListener('click', nextPage)
+
+const prevPage = () => {
+    if (page <= 1) {
+        return
+    } else {
+        issueContainer.innerHTML = ''
+        page--
+        getRepoIssues(repoName.innerText)
+        console.log('prevPage -> repoName', repoName)
+    }
+}
+
+prevBtn.addEventListener('click', prevPage)
