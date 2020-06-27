@@ -2,6 +2,11 @@ const userFormEl = document.querySelector('#user-form')
 const nameInputEl = document.querySelector('#username')
 const repoContainerEl = document.querySelector('#repo-container')
 const repoSearchTerm = document.querySelector('#repo-search-term')
+const languageBtnsEl = document.querySelector('#language-buttons')
+
+languageBtnsEl.click = cb => {
+    this.addEventListener('click', cb)
+}
 
 // form submit handler
 const handleFormSubmit = e => {
@@ -68,4 +73,19 @@ const displayRepos = (repos, term) => {
     })
 }
 
-// getUserRepos('facebook')
+const getFeaturedRepos = language => {
+    let apiUrl = `https://api.github.com/search/repositories?q=${language}+is:featured&sort=help-wanted-issues`
+    fetch(apiUrl).then(res => {
+        res.ok
+            ? res.json().then(json => displayRepos(json.items, language))
+            : alert(res.statusText)
+    })
+}
+
+const buttonClickHandler = e => {
+    let language = e.target.getAttribute('data-language')
+    if (language) getFeaturedRepos(language)
+    repoContainerEl.textContent = ''
+}
+
+languageBtnsEl.click(buttonClickHandler)
